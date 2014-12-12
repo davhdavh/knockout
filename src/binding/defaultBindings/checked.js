@@ -49,6 +49,8 @@ ko.bindingHandlers['checked'] = {
                     ko.utils.addOrRemoveItem(modelValue, elemValue, isChecked);
                 }
             } else {
+                if (tristateType == 'cycle' && elemValue && modelValue() !== null)
+                    elemValue = null;
                 ko.expressionRewriting.writeValueToProperty(modelValue, allBindings, 'checked', elemValue, true);
             }
         };
@@ -64,6 +66,8 @@ ko.bindingHandlers['checked'] = {
             } else if (isCheckbox) {
                 // When a checkbox is bound to any other value (not an array), being checked represents the value being trueish
                 element.checked = modelValue;
+                if (tristateType)
+                    element.indeterminate = modelValue === null;
             } else {
                 // For radio buttons, being checked means that the radio button's value corresponds to the model value
                 element.checked = (checkedValue() === modelValue);
@@ -78,7 +82,8 @@ ko.bindingHandlers['checked'] = {
             return;
         }
 
-        var isValueArray = isCheckbox && (ko.utils.unwrapObservable(valueAccessor()) instanceof Array),
+        var tristateType = isCheckbox && allBindings['has']('tristateType') && allBindings.get('tristateType'),
+            isValueArray = isCheckbox && (ko.utils.unwrapObservable(valueAccessor()) instanceof Array),
             oldElemValue = isValueArray ? checkedValue() : undefined,
             useCheckedValue = isRadio || isValueArray;
 
